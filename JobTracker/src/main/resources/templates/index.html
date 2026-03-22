@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Tracker UA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+
+<div class="container py-5">
+    <h1 class="mb-4 text-center">Job Tracker <small class="text-muted">UA</small></h1>
+
+    <div th:if="${message}" class="alert alert-dismissible fade show"
+         th:classappend="${'alert-' + messageType}" role="alert">
+        <span th:text="${message}">Повідомлення</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="card shadow-sm mb-5">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Пошук вакансій</h5>
+
+            <form action="/parse" method="post" class="row g-3">
+
+                <div class="col-md-4">
+                    <label class="form-label visually-hidden">Пошук</label>
+                    <input type="text" name="query" class="form-control" placeholder="Технологія (напр. Java, Python)" required>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label visually-hidden">Місто</label>
+                    <select name="city" class="form-select">
+                        <option value="">Всі міста</option>
+                        <option value="Remote">Віддалено</option>
+                        <hr>
+                        <option value="Kyiv">Київ</option>
+                        <option value="Lviv">Львів</option>
+                        <option value="Dnipro">Дніпро</option>
+                        <option value="Kharkiv">Харків</option>
+                        <option value="Odesa">Одеса</option>
+                        <option value="Vinnytsia">Вінниця</option>
+                        <option value="Ivano-Frankivsk">Івано-Франківськ</option>
+                        <option value="Uzhhorod">Ужгород</option>
+                        <option value="Ternopil">Тернопіль</option>
+                        <option value="Chernivtsi">Чернівці</option>
+                        <option value="Lutsk">Луцьк</option>
+                        <option value="Rivne">Рівне</option>
+                        <option value="Khmelnytskyi">Хмельницький</option>
+                        <option value="Zhytomyr">Житомир</option>
+                        <option value="Poltava">Полтава</option>
+                        <option value="Cherkasy">Черкаси</option>
+                        <option value="Zaporizhzhia">Запоріжжя</option>
+                        <option value="Mykolaiv">Миколаїв</option>
+                        <option value="Chernihiv">Чернігів</option>
+                        <option value="Sumy">Суми</option>
+                        <option value="Kropyvnytskyi">Кропивницький</option>
+                        <hr>
+                        <option value="Krakow">Краків (PL)</option>
+                        <option value="Warsaw">Варшава (PL)</option>
+                        <option value="Relocate">Relocate (За кордон)</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label visually-hidden">Досвід</label>
+                    <select name="level" class="form-select">
+                        <option value="0">Без досвіду</option>
+                        <option value="1">1 рік</option>
+                        <option value="2">2 роки</option>
+                        <option value="3">3 роки</option>
+                        <option value="5">5+ років</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label visually-hidden">English</label>
+                    <select name="english" class="form-select">
+                        <option value="no_english">Без англійської</option>
+                        <option value="pre">Pre-Intermediate</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="upper">Upper-Intermediate</option>
+                        <option value="fluent">Advanced / Fluent</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Знайти</button>
+                </div>
+
+                <div class="col-12 mt-3">
+                    <div class="d-flex align-items-center bg-light p-2 rounded border">
+                        <span class="fw-bold me-3 text-secondary">Де шукати:</span>
+
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="sources" value="DOU" id="sourceDou" checked>
+                            <label class="form-check-label" for="sourceDou">DOU.ua</label>
+                        </div>
+
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="sources" value="Djinni" id="sourceDjinni" checked>
+                            <label class="form-check-label" for="sourceDjinni">Djinni.co</label>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-5 border-warning" th:if="${!favorites.isEmpty()}">
+        <div class="card-header bg-warning-subtle">
+            <h5 class="mb-0 text-dark"><i class="bi bi-star-fill text-warning"></i> Обрані вакансії</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Посада</th>
+                    <th>Компанія</th>
+                    <th>Ресурс</th>
+                    <th>Місто</th>
+                    <th>Років досвіду</th>
+                    <th>English</th>
+                    <th>Статус</th>
+                    <th>Дії</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="v : ${favorites}">
+                    <td>
+                        <a th:href="@{/view/{id}(id=${v.id})}" class="fw-bold text-decoration-none" th:text="${v.title}">Title</a>
+                        <br>
+                        <small class="text-muted" th:text="${v.salary}">Salary</small>
+                    </td>
+                    <td th:text="${v.company}">Company</td>
+
+                    <td><span class="badge bg-light text-dark border" th:if="${v.source != null}" th:text="${v.source.name}">SRC</span></td>
+                    <td><span class="badge bg-info text-dark" th:if="${v.city != null}" th:text="${v.city}">City</span></td>
+
+                    <td>
+                        <span class="badge bg-secondary" th:if="${v.level != null && !#strings.isEmpty(v.level)}">
+                            <i class="bi bi-briefcase-fill me-1"></i> <span th:switch="${v.level}">
+                                <span th:case="'0'">Без досвіду</span>
+                                <span th:case="'1'">1 рік</span>
+                                <span th:case="'2'">2 роки</span>
+                                <span th:case="'3'">3 роки</span>
+                                <span th:case="'4'">4 роки</span>
+                                <span th:case="'5'">5 років</span>
+                                <span th:case="'6'">6 років</span>
+                                <span th:case="'7'">7 років</span>
+                                <span th:case="'8'">8 років</span>
+                                <span th:case="'9'">9 років</span>
+                                <span th:case="'10'">10 років</span>
+                                <span th:case="*" th:text="${#strings.capitalize(v.level)}">Junior</span>
+                            </span>
+                        </span>
+                        <small class="text-muted" th:if="${v.level == null || #strings.isEmpty(v.level)}">-</small>
+                    </td>
+
+                    <td>
+                        <span class="badge bg-warning-subtle text-dark border"
+                              th:if="${v.englishLevel != null && v.englishLevel != ''}">
+                              <i class="bi bi-translate me-1"></i> <span th:text="${v.englishLevel}">Upper</span>
+                        </span>
+                        <small class="text-muted" th:if="${v.englishLevel == null || v.englishLevel == ''}">-</small>
+                    </td>
+
+                    <td>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"
+                                    th:text="${v.status}"
+                                    th:classappend="${v.status.name() == 'NEW' ? 'btn-primary' :
+                                 (v.status.name() == 'APPLIED' ? 'btn-warning' :
+                                 (v.status.name() == 'INTERVIEW' ? 'btn-info' :
+                                 (v.status.name() == 'OFFER' ? 'btn-success' :
+                                 (v.status.name() == 'REJECTED' ? 'btn-danger' : 'btn-secondary'))))}">
+                                Status
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><form action="/status/update" method="post"><input type="hidden" name="id" th:value="${v.id}"><button type="submit" name="status" value="NEW" class="dropdown-item">🆕 Нова</button></form></li>
+                                <li><form action="/status/update" method="post"><input type="hidden" name="id" th:value="${v.id}"><button type="submit" name="status" value="APPLIED" class="dropdown-item">📤 Відгукнувся</button></form></li>
+                                <li><form action="/status/update" method="post"><input type="hidden" name="id" th:value="${v.id}"><button type="submit" name="status" value="INTERVIEW" class="dropdown-item">🎤 Співбесіда</button></form></li>
+                                <li><form action="/status/update" method="post"><input type="hidden" name="id" th:value="${v.id}"><button type="submit" name="status" value="OFFER" class="dropdown-item">🎉 Оффер</button></form></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><form action="/status/update" method="post"><input type="hidden" name="id" th:value="${v.id}"><button type="submit" name="status" value="REJECTED" class="dropdown-item text-danger">⛔ Відмова</button></form></li>
+                            </ul>
+                        </div>
+                    </td>
+
+                    <td>
+                        <a th:href="@{/favorite/{id}(id=${v.id})}" class="btn btn-sm btn-outline-danger" title="Прибрати з обраних"><i class="bi bi-trash"></i></a>
+                        <a th:href="@{/view/{id}(id=${v.id})}" class="btn btn-sm btn-outline-dark">Деталі</a>
+                        <a th:href="${v.link}" target="_blank" class="btn btn-sm btn-outline-primary">На сайт ↗</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">📋 Всі знайдені вакансії</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Посада</th>
+                    <th>Компанія</th>
+                    <th>Ресурс</th>
+                    <th>Місто</th>
+                    <th>Років досвіду</th>
+                    <th>English</th>
+                    <th>Статус</th>
+                    <th>Дії</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="v : ${vacancies}">
+                    <td>
+                        <a th:href="@{/view/{id}(id=${v.id})}" class="fw-bold text-decoration-none" th:text="${v.title}">Title</a>
+                        <br>
+                        <small class="text-muted" th:text="${v.salary}">Salary</small>
+                    </td>
+                    <td th:text="${v.company}">Company</td>
+
+                    <td><span class="badge bg-light text-dark border" th:if="${v.source != null}" th:text="${v.source.name}">SRC</span></td>
+                    <td><span class="badge bg-info text-dark" th:if="${v.city != null}" th:text="${v.city}">City</span></td>
+
+                    <td>
+                        <span class="badge bg-secondary" th:if="${v.level != null && !#strings.isEmpty(v.level)}">
+                            <i class="bi bi-briefcase-fill me-1"></i> <span th:switch="${v.level}">
+                                <span th:case="'0'">Без досвіду</span>
+                                <span th:case="'1'">1 рік</span>
+                                <span th:case="'2'">2 роки</span>
+                                <span th:case="'3'">3 роки</span>
+                                <span th:case="'4'">4 роки</span>
+                                <span th:case="'5'">5 років</span>
+                                <span th:case="'6'">6 років</span>
+                                <span th:case="'7'">7 років</span>
+                                <span th:case="'8'">8 років</span>
+                                <span th:case="'9'">9 років</span>
+                                <span th:case="'10'">10 років</span>
+                                <span th:case="*" th:text="${#strings.capitalize(v.level)}">Junior</span>
+                            </span>
+                        </span>
+                        <small class="text-muted" th:if="${v.level == null || #strings.isEmpty(v.level)}">-</small>
+                    </td>
+
+                    <td>
+                        <span class="badge bg-warning-subtle text-dark border"
+                              th:if="${v.englishLevel != null && v.englishLevel != ''}">
+                              <i class="bi bi-translate me-1"></i> <span th:text="${v.englishLevel}">Upper</span>
+                        </span>
+                        <small class="text-muted" th:if="${v.englishLevel == null || v.englishLevel == ''}">-</small>
+                    </td>
+
+                    <td>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"
+                                    th:text="${v.status}"
+                                    th:classappend="${v.status.name() == 'NEW' ? 'btn-primary' :
+                                 (v.status.name() == 'APPLIED' ? 'btn-warning' :
+                                 (v.status.name() == 'INTERVIEW' ? 'btn-info' :
+                                 (v.status.name() == 'OFFER' ? 'btn-success' :
+                                 (v.status.name() == 'REJECTED' ? 'btn-danger' : 'btn-secondary'))))}">
+                                Status
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><form action="/status/update" method="post"><input type="hidden" name="id" th:value="${v.id}"><button type="submit" name="status" value="NEW" class="dropdown-item">🆕 Нова</button></form></li>
+                                <li><form action="/status/update" method="post"><input type="hidden" name="id" th:value="${v.id}"><button type="submit" name="status" value="APPLIED" class="dropdown-item">📤 Відгукнувся</button></form></li>
+                                <li><form action="/status/update" method="post"><input type="hidden" name="id" th:value="${v.id}"><button type="submit" name="status" value="INTERVIEW" class="dropdown-item">🎤 Співбесіда</button></form></li>
+                                <li><form action="/status/update" method="post"><input type="hidden" name="id" th:value="${v.id}"><button type="submit" name="status" value="OFFER" class="dropdown-item">🎉 Оффер</button></form></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><form action="/status/update" method="post"><input type="hidden" name="id" th:value="${v.id}"><button type="submit" name="status" value="REJECTED" class="dropdown-item text-danger">⛔ Відмова</button></form></li>
+                            </ul>
+                        </div>
+                    </td>
+
+                    <td>
+                        <a th:href="@{/favorite/{id}(id=${v.id})}" class="btn btn-sm"
+                           th:classappend="${v.isFavorite == true} ? 'btn-warning' : 'btn-outline-secondary'">
+                            <i th:class="${v.isFavorite == true} ? 'bi bi-star-fill' : 'bi bi-star'"></i>
+                        </a>
+                        <a th:href="@{/view/{id}(id=${v.id})}" class="btn btn-sm btn-outline-dark">Деталі</a>
+                        <a th:href="${v.link}" target="_blank" class="btn btn-sm btn-outline-primary">На сайт ↗</a>
+                    </td>
+                </tr>
+                <tr th:if="${vacancies.isEmpty()}">
+                    <td colspan="8" class="text-center py-4 text-muted">
+                        Список порожній. Спробуйте пошукати вакансії!
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
